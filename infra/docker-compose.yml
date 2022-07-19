@@ -3,13 +3,15 @@ services:
 
   db:
     image: postgres:latest
+    container_name: db
     volumes:
-      - /var/lib/postgresql/data/
+      - database:/var/lib/postgresql/data/
     env_file:
       - ./.env
 
   backend:
     image: sergosolo/foodgram:latest
+    container_name: backend
     restart: always
     volumes:
       - static_value:/app/static/
@@ -21,7 +23,7 @@ services:
 
   frontend:
     image: sergosolo/frontend:latest
-    restart: always
+    container_name: frontend
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
@@ -29,6 +31,7 @@ services:
 
   nginx:
     image: nginx:1.19.3
+    container_name: nginx
     ports:
       - "80:80"
     volumes:
@@ -37,13 +40,11 @@ services:
       - ../docs/:/usr/share/nginx/html/api/docs/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
-    restart: always
     depends_on:
       - backend
       - frontend
 
 volumes:
-    postgres_data:
     static_value:
     media_value:
     database:

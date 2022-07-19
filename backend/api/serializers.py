@@ -163,10 +163,12 @@ class RecipeSerializers(serializers.ModelSerializer):
         ).exists()
 
     def get_is_in_shopping_cart(self, instans):
-        user = self.context['request'].user
-        if user.is_anonymous:
+        if self.context['request'].user.is_anonymous:
             return False
-        return Cart.objects.filter(recipe=instans, user=user).exists()
+        return Cart.objects.filter(
+            recipe=instans, 
+            user=self.context['request'].user
+        ).exists()
 
 
 class LiteRecipeSerializers(serializers.ModelSerializer):
@@ -209,10 +211,10 @@ class FollowSerializers(serializers.ModelSerializer):
 
     def get_recipe(self, instans):
         request = self.context.get('request')
-        limit = request.GET.get('recipes_limit')
+        recipes_limit = request.GET.get('recipes_limit')
         queryset = Recipe.objects.filter(author=instans.following)
-        if limit:
-            queryset = queryset[:int(limit)]
+        if recipes_limit:
+            queryset = queryset[:int(recipes_limit)]
         serializer = LiteRecipeSerializers(queryset, many=True)
         return serializer.data
 

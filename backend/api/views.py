@@ -101,7 +101,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if object.exists():
             object.delete()
             return Response(
-                {'errors': 'Рецепт удален.'},
+                {'detail': 'Рецепт удален.'},
                 status=status.HTTP_204_NO_CONTENT
             )
         return Response(
@@ -146,7 +146,7 @@ class UserViewSet(UserViewSet):
     @action(
         detail=True,
         permission_classes=(IsAuthenticated,),
-        methods=['post']
+        methods=['POST']
     )
     def subscribe(self, request, id=None):
         user = self.request.user
@@ -166,7 +166,7 @@ class UserViewSet(UserViewSet):
             )
         follow = Follow.objects.create(user=user, following=following)
         serializer = FollowSerializers(follow, context={'request': request})
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, id=None):
@@ -175,7 +175,11 @@ class UserViewSet(UserViewSet):
         follow = Follow.objects.filter(user=user, following=following)
         if follow.exists():
             follow.delete()
-            return Response({'ditail': 'Вы отписались'})
+            return Response(
+                {'detail': 'Вы отписались'},
+                status=status.HTTP_204_NO_CONTENT
+            )
         return Response(
-            {'errors': 'Вы не можете отписаться, т.к. не подписаны на автора'}
+            {'errors': 'Вы не можете отписаться, т.к. не подписаны на автора'},
+            status=status.HTTP_400_BAD_REQUEST
         )

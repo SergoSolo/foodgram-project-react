@@ -10,7 +10,7 @@ services:
       - ./.env
 
   backend:
-    image: sergosolo/foodgram:latest
+    image: sergosolo/foodgram_backend:latest
     container_name: backend
     restart: always
     volumes:
@@ -22,7 +22,7 @@ services:
       - ./.env
 
   frontend:
-    image: sergosolo/frontend:latest
+    image: sergosolo/foodgram_frontend:latest
     container_name: frontend
     volumes:
       - ../frontend/:/app/result_build/

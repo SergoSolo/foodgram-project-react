@@ -23,6 +23,7 @@ docker-compose up -d
 ```
 Make all necessary migrations:
 ```bash
+ocker-compose exec backend python manage.py makemigrations
 docker-compose exec backend python manage.py migrate
 ```
 Create super user:
@@ -35,6 +36,8 @@ docker-compose exec backend python manage.py collectstatic --no-input
 ```
 
 The project is now available at http://localhost/admin.
+
+Information about API http://localhost/api/docs/
 
 Status workflow:
 https://github.com/SergoSolo/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg

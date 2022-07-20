@@ -1,15 +1,19 @@
 
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from recipes.models import Ingredient, IngredientAmount, Recipe, Tag
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .serializers import (FollowSerializers,  # isort:skip
-                          IngredientsSerializer, LiteRecipeSerializers,
+from recipes.models import (Ingredient, IngredientAmount, Recipe,  # isort:skip
+                            Tag)
+from .serializers import (CartCreateSerializers,  # isort:skip
+                          FavoriteCreateSerializers, FollowCreateSerializers,
+                          FollowSerializers, IngredientsSerializer,
+                          LiteRecipeSerializers, RecipeCreateSerializers,
                           RecipeSerializers, TagSerializers, UserSerializers)
 from .filters import RecipeFilters  # isort:skip
 from .pagination import PageLimitPagination  # isort:skip
@@ -19,10 +23,20 @@ from users.models import Follow, User  # isort:skip
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializers
+    serializer_class = RecipeCreateSerializers
     pagination_class = PageLimitPagination
     fillter_class = RecipeFilters
     permission_classes = (AuthorOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.request.method in ['POST', 'PATCH', 'PUT']:
+            return RecipeCreateSerializers
+        return RecipeSerializers
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({'request':self.request})
+        return context
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -34,11 +48,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def favorite(self, request, pk=None):
         related = self.request.user.favorites
-        object = related.filter(recipe=pk)
+        related_obj = related.filter(recipe=pk)
         if self.request.method == 'POST':
-            return self.add_obj(related, object, pk)
+            return self.create_obj(
+                request, 
+                related, 
+                FavoriteCreateSerializers, 
+                pk
+            )
         elif self.request.method == 'DELETE':
-            return self.obj_delete(object)
+            return self.obj_delete(related_obj)
         return None
 
     @action(
@@ -48,11 +67,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def shopping_cart(self, request, pk=None):
         related = self.request.user.carts
-        object = related.filter(recipe=pk)
+        related_obj = related.filter(recipe=pk)
         if self.request.method == 'POST':
-            return self.add_obj(related, object, pk)
+            return self.create_obj(
+                request, related,
+                CartCreateSerializers,
+                pk
+            )
         elif self.request.method == 'DELETE':
-            return self.obj_delete(object)
+            return self.obj_delete(related_obj)
         return None
 
     @action(
@@ -61,52 +84,49 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def download_shopping_cart(self, request):
-        products_list = {}
+        products_buy = {}
         ingredients = IngredientAmount.objects.filter(
             recipe__carts__user=request.user
-        ).values_list(
-            'ingredient__name',
-            'ingredient__measurement_unit',
-            'amount'
-        )
+        ).order_by('ingredient__name').values_list(
+            'ingredient__name', 
+            'ingredient__measurement_unit'
+        ).annotate(amount_total=Sum('amount'))  
         for ingredient in ingredients:
             name = ingredient[0]
-            if name not in products_list:
-                products_list[name] = {
-                    'measurement_unit': ingredient[1],
-                    'amount': ingredient[2]
-                }
-            else:
-                products_list[name]['amount'] += ingredient[2]
+            products_buy[name] = {
+                'measurement_unit': ingredient[1],
+                'amount': ingredient[2]
+            }
         final_list = (f"{name} - {value['amount']}"
                       f"{value['measurement_unit']}\n"
-                      for name, value in products_list.items())
+                      for name, value in products_buy.items())
         response = HttpResponse(final_list, 'Content-Type: text/plain')
         response['Content-Disposition'] = ('attachment; '
                                            'filename="products_list.txt"')
         return response
 
-    def add_obj(self, related, object, pk):
-        if object.exists():
-            return Response(
-                {'errors': 'Рецепт уже добавлен.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    def create_obj(self, request, related, main_serializer, pk):
+        user = self.request.user
+        data = {
+            'user': user.id,
+            'recipe':pk
+        }
         recipe = get_object_or_404(Recipe, id=pk)
-        related.create(recipe=recipe)
-        serializer = LiteRecipeSerializers(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def obj_delete(self, object):
-        if object.exists():
-            object.delete()
-            return Response(
-                {'detail': 'Рецепт удален.'},
-                status=status.HTTP_204_NO_CONTENT
+        serializer = main_serializer(data=data, context={'request':request})
+        if serializer.is_valid():
+            related.create(recipe=recipe)
+            serializer = LiteRecipeSerializers(
+                recipe, 
+                context={'request':request}
             )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def obj_delete(self, related_obj):
+        related_obj.delete()
         return Response(
-            {'errors': 'Рецепт уже удален.'},
-            status=status.HTTP_400_BAD_REQUEST
+            {'detail':'Рецепт удален'},
+            status=status.HTTP_204_NO_CONTENT
         )
 
 
@@ -151,35 +171,26 @@ class UserViewSet(UserViewSet):
     def subscribe(self, request, id=None):
         user = self.request.user
         following = get_object_or_404(User, id=id)
-        if following == user:
-            return Response(
-                {'errors': 'Вы не можете подписаться на себя'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if Follow.objects.filter(
-            user=user,
-            following=following
-        ).exists():
-            return Response(
-                {'errors': 'Вы уже подписаны'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        follow = Follow.objects.create(user=user, following=following)
-        serializer = FollowSerializers(follow, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        data = {
+            'user':user.id,
+            'following':id
+        }
+        serializer = FollowCreateSerializers(
+            data=data,
+            context={'request':request}
+        )
+        if serializer.is_valid():
+            follow = Follow.objects.create(user=user, following=following)
+            serializer = FollowSerializers(follow, context={'request':request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, id=None):
         user = self.request.user
         following = get_object_or_404(User, id=id)
-        follow = Follow.objects.filter(user=user, following=following)
-        if follow.exists():
-            follow.delete()
-            return Response(
-                {'detail': 'Вы отписались'},
-                status=status.HTTP_204_NO_CONTENT
-            )
+        Follow.objects.filter(user=user, following=following).delete()
         return Response(
-            {'errors': 'Вы не можете отписаться, т.к. не подписаны на автора'},
-            status=status.HTTP_400_BAD_REQUEST
+            {'detail': 'Вы отписались'},
+            status=status.HTTP_204_NO_CONTENT
         )

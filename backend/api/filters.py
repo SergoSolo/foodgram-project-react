@@ -1,5 +1,6 @@
 from django_filters import FilterSet, filters
-from recipes.models import Recipe, Tag
+
+from recipes.models import Recipe, Tag  # isort:skip
 
 
 class RecipeFilters(FilterSet):

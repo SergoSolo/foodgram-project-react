@@ -8,24 +8,31 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='recipes'
+        related_name='recipes',
+        verbose_name='Автор'
     )
-    name = models.CharField(max_length=200)
-    text = models.TextField()
+    name = models.CharField(
+        max_length=200,
+        verbose_name='Название рецепта'
+    )
+    text = models.TextField(verbose_name='Описание')
     image = models.ImageField(
         'Картинка',
         upload_to='recipes/'
     )
     tags = models.ManyToManyField(
         'Tag',
-        related_name='tags'
+        related_name='tags',
+        verbose_name='Теги'
     )
     ingredients = models.ManyToManyField(
         'Ingredient',
         related_name='ingredients',
+        verbose_name='Ингредиенты',
         through='IngredientAmount'
     )
     cooking_time = models.PositiveSmallIntegerField(
+        verbose_name='Время приготовления',
         validators=(
             validators.MinValueValidator(
                 1,
@@ -44,9 +51,21 @@ class Recipe(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=200, unique=True)
-    color = ColorField(default='#FF0000', unique=True)
-    slug = models.SlugField(max_length=200, unique=True)
+    name = models.CharField(
+        max_length=200,
+        unique=True,
+        verbose_name='Название тега'
+    )
+    color = ColorField(
+        default='#FF0000',
+        unique=True,
+        verbose_name='Цвет в формате HEX'
+    )
+    slug = models.SlugField(
+        max_length=200, 
+        unique=True,
+        verbose_name='Уникальный идентификатор slug'
+    )
 
     class Meta:
         ordering = ('-id',)
@@ -58,8 +77,14 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length=200)
-    measurement_unit = models.CharField(max_length=200)
+    name = models.CharField(
+        max_length=200, 
+        verbose_name='Название ингредиента'
+    )
+    measurement_unit = models.CharField(
+        max_length=200,
+        verbose_name='Единица измерения'
+    )
 
     class Meta:
         ordering = ('-id',)
@@ -74,14 +99,17 @@ class IngredientAmount(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='ingredientamount'
+        related_name='ingredientamount',
+        verbose_name='Рецепт'
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredientamount'
+        related_name='ingredientamount',
+        verbose_name='Ингредиент'
     )
     amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество',
         validators=(
             validators.MinValueValidator(
                 1,
@@ -94,18 +122,26 @@ class IngredientAmount(models.Model):
         ordering = ('-id',)
         verbose_name = 'Количество ингредиента'
         verbose_name_plural = 'Количество ингредиентов'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('recipe', 'ingredient'),
+                name='unique_ingredient_for_recipe'
+            ),
+        ]
 
 
 class Favorite(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='favorites'
+        related_name='favorites',
+        verbose_name='Пользователь'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorites'
+        related_name='favorites',
+        verbose_name='Рецепт'
     )
 
     class Meta:
@@ -124,12 +160,14 @@ class Cart(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='carts'
+        related_name='carts',
+        verbose_name='Пользователь'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='carts',
+        verbose_name='Рецепт'
     )
 
     class Meta:

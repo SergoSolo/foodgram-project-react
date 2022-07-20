@@ -23,7 +23,6 @@ docker-compose up -d
 ```
 Make all necessary migrations:
 ```bash
-ocker-compose exec backend python manage.py makemigrations
 docker-compose exec backend python manage.py migrate
 ```
 Create super user:

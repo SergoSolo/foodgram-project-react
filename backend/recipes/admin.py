@@ -31,6 +31,7 @@ class IngredientAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     empty_value_display = 'пусто'
 
+
 @admin.register(IngredientAmount)
 class IngredientAmountAdmin(admin.ModelAdmin):
     pass

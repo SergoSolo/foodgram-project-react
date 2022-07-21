@@ -1,4 +1,3 @@
-
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -113,14 +112,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         }
         recipe = get_object_or_404(Recipe, id=pk)
         serializer = main_serializer(data=data, context={'request':request})
-        if serializer.is_valid():
-            related.create(recipe=recipe)
-            serializer = LiteRecipeSerializers(
-                recipe, 
-                context={'request':request}
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        related.create(recipe=recipe)
+        serializer = LiteRecipeSerializers(
+            recipe, 
+            context={'request':request}
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def obj_delete(self, related_obj):
         related_obj.delete()
@@ -179,11 +177,10 @@ class UserViewSet(UserViewSet):
             data=data,
             context={'request':request}
         )
-        if serializer.is_valid():
-            follow = Follow.objects.create(user=user, following=following)
-            serializer = FollowSerializers(follow, context={'request':request})
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        follow = Follow.objects.create(user=user, following=following)
+        serializer = FollowSerializers(follow, context={'request':request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, id=None):

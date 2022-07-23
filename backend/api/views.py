@@ -13,7 +13,7 @@ from recipes.models import (Ingredient, IngredientAmount, Recipe,  # isort:skip
 from .serializers import (CartCreateSerializers,  # isort:skip
                           FavoriteCreateSerializers, FollowCreateSerializers,
                           FollowSerializers, IngredientsSerializer,
-                          LiteRecipeSerializers, RecipeCreateSerializers,
+                          RecipeCreateSerializers,
                           RecipeSerializers, TagSerializers, UserSerializers)
 from .filters import RecipeFilters, IngredientSearchFilter  # isort:skip
 from .pagination import PageLimitPagination  # isort:skip
@@ -26,7 +26,6 @@ User = get_user_model()
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeCreateSerializers
     pagination_class = PageLimitPagination
     fillter_class = RecipeFilters
     permission_classes = (AuthorOrReadOnly,)
@@ -55,7 +54,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.method == 'POST':
             return self.create_obj(
                 request, 
-                related, 
                 FavoriteCreateSerializers, 
                 pk
             )
@@ -108,20 +106,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                            'filename="products_list.txt"')
         return response
 
-    def create_obj(self, request, related, main_serializer, pk):
+    def create_obj(self, request, main_serializer, pk):
         user = self.request.user
         data = {
             'user': user.id,
             'recipe':pk
         }
-        recipe = get_object_or_404(Recipe, id=pk)
+        # recipe = get_object_or_404(Recipe, id=pk)
         serializer = main_serializer(data=data, context={'request':request})
         serializer.is_valid(raise_exception=True)
-        related.create(recipe=recipe)
-        serializer = LiteRecipeSerializers(
-            recipe, 
-            context={'request':request}
-        )
+        serializer.save()
+        # related.create(recipe=recipe)
+        # serializer = LiteRecipeSerializers(
+        #     recipe, 
+        #     context={'request':request}
+        # )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def obj_delete(self, related_obj):

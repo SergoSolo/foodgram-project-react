@@ -323,4 +323,3 @@ class FavoriteCreateSerializers(serializers.ModelSerializer):
                 message='Рецепт уже в избранном'
             )
         ]
-

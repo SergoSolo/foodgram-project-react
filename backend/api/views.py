@@ -3,7 +3,7 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from rest_framework import filters, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -15,7 +15,7 @@ from .serializers import (CartCreateSerializers,  # isort:skip
                           FollowSerializers, IngredientsSerializer,
                           LiteRecipeSerializers, RecipeCreateSerializers,
                           RecipeSerializers, TagSerializers, UserSerializers)
-from .filters import RecipeFilters  # isort:skip
+from .filters import RecipeFilters, IngredientSearchFilter  # isort:skip
 from .pagination import PageLimitPagination  # isort:skip
 from .permissions import AdminOrReadOnly, AuthorOrReadOnly  # isort:skip
 from users.models import Follow  # isort:skip
@@ -135,8 +135,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientsSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    filter_backends = (IngredientSearchFilter,)
+    search_fields = ('^name',)
     permission_classes = (AdminOrReadOnly,)
 
 

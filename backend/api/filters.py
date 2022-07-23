@@ -1,4 +1,5 @@
-from django_filters import FilterSet, filters
+from django_filters.rest_framework import FilterSet, filters
+from rest_framework.filters import SearchFilter
 
 from recipes.models import Recipe, Tag  # isort:skip
 
@@ -26,3 +27,7 @@ class RecipeFilters(FilterSet):
         if value:
             return queryset.filter(carts__user=self.request.user)
         return queryset
+
+
+class IngredientSearchFilter(SearchFilter):
+    search_param = 'name'

@@ -310,13 +310,6 @@ class CartCreateSerializers(serializers.ModelSerializer):
             )
         ]
 
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        return LiteRecipeSerializers(
-            instance.recipe,
-            context={'request':request}
-        ).data
-
 
 class FavoriteCreateSerializers(serializers.ModelSerializer):
 
@@ -331,9 +324,3 @@ class FavoriteCreateSerializers(serializers.ModelSerializer):
             )
         ]
 
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        return LiteRecipeSerializers(
-            instance.recipe,
-            context={'request':request}
-        ).data

@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -13,7 +14,7 @@ from recipes.models import (Ingredient, IngredientAmount, Recipe,  # isort:skip
 from .serializers import (CartCreateSerializers,  # isort:skip
                           FavoriteCreateSerializers, FollowCreateSerializers,
                           FollowSerializers, IngredientsSerializer,
-                          RecipeCreateSerializers,
+                          RecipeCreateSerializers, LiteRecipeSerializers,
                           RecipeSerializers, TagSerializers, UserSerializers)
 from .filters import RecipeFilters, IngredientSearchFilter  # isort:skip
 from .pagination import PageLimitPagination  # isort:skip
@@ -27,6 +28,7 @@ User = get_user_model()
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     pagination_class = PageLimitPagination
+    filter_backends = (DjangoFilterBackend,)
     fillter_class = RecipeFilters
     permission_classes = (AuthorOrReadOnly,)
 
@@ -53,7 +55,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         related_obj = related.filter(recipe=pk)
         if self.request.method == 'POST':
             return self.create_obj(
-                request, 
+                request,
+                related,
                 FavoriteCreateSerializers, 
                 pk
             )
@@ -71,7 +74,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         related_obj = related.filter(recipe=pk)
         if self.request.method == 'POST':
             return self.create_obj(
-                request, related,
+                request,
+                related,
                 CartCreateSerializers,
                 pk
             )
@@ -106,21 +110,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                            'filename="products_list.txt"')
         return response
 
-    def create_obj(self, request, main_serializer, pk):
+    def create_obj(self, request, related, main_serializer, pk):
         user = self.request.user
         data = {
             'user': user.id,
             'recipe':pk
         }
-        # recipe = get_object_or_404(Recipe, id=pk)
+        recipe = get_object_or_404(Recipe, id=pk)
         serializer = main_serializer(data=data, context={'request':request})
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        # related.create(recipe=recipe)
-        # serializer = LiteRecipeSerializers(
-        #     recipe, 
-        #     context={'request':request}
-        # )
+        related.create(recipe=recipe)
+        serializer = LiteRecipeSerializers(
+            recipe, 
+            context={'request':request}
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def obj_delete(self, related_obj):
@@ -134,8 +137,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientsSerializer
-    filter_backends = (IngredientSearchFilter,)
-    search_fields = ('^name',)
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = IngredientSearchFilter
     permission_classes = (AdminOrReadOnly,)
 
 

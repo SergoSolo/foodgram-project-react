@@ -1,4 +1,4 @@
-# FOODGRAM PROJECT ALHA VERSION
+# FOODGRAM PROJECT
 
 Current library is REST API for FOODGRAM service which provides access for reading, creating and editing recipes:
 
@@ -34,9 +34,9 @@ Collect static:
 docker-compose exec backend python manage.py collectstatic --no-input 
 ```
 
-The project is now available at http://localhost/admin.
+The project is now available at http://84.252.139.107/admin
 
-Information about API http://localhost/api/docs/
+Information about API http://84.252.139.107/api/docs/
 
 Status workflow:
 https://github.com/SergoSolo/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg

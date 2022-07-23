@@ -1,4 +1,5 @@
-from djoser.serializers import UserSerializer
+from django.contrib.auth import get_user_model
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.serializers import (CurrentUserDefault,
@@ -6,14 +7,29 @@ from rest_framework.serializers import (CurrentUserDefault,
 
 from recipes.models import (Cart, Favorite, Ingredient,  # isort:skip
                             IngredientAmount, Recipe, Tag)
-from users.models import Follow, User  # isort:skip
+from users.models import Follow  # isort:skip
 
 
-class UserCreateSerializers(UserSerializer):
+User = get_user_model()
+
+
+class UserCreateSerializers(UserCreateSerializer):
 
     class Meta:
         model = User
         fields = ('email', 'username', 'first_name', 'last_name', 'password')
+        extra_kwargs = {'password':{'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create(
+            email=validated_data['email'],
+            username=validated_data['username'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 
 class UserSerializers(UserSerializer):

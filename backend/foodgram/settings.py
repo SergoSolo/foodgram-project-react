@@ -9,7 +9,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.getenv('SECRET_KEY') or get_random_secret_key
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -103,10 +103,12 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 DJOSER = {
     'LOGIN_FIELD':'email',
+    'HIDE_USERS': False,
     'SERIALIZERS': {
         'user_create': 'api.serializers.UserCreateSerializers',
         'user': 'api.serializers.UserSerializers',
-        'current_user': 'api.serializers.UserSerializers'
+        'current_user': 'api.serializers.UserSerializers',
+        'user_list': 'api.serializers.UserSerializers'
     },
     'PERMISSIONS': {
         'user': ('rest_framework.permissions.IsAuthenticated',),

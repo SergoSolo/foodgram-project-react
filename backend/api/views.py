@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -17,7 +18,10 @@ from .serializers import (CartCreateSerializers,  # isort:skip
 from .filters import RecipeFilters  # isort:skip
 from .pagination import PageLimitPagination  # isort:skip
 from .permissions import AdminOrReadOnly, AuthorOrReadOnly  # isort:skip
-from users.models import Follow, User  # isort:skip
+from users.models import Follow  # isort:skip
+
+
+User = get_user_model()
 
 
 class RecipeViewSet(viewsets.ModelViewSet):

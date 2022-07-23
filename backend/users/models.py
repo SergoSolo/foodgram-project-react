@@ -14,18 +14,10 @@ class User(AbstractUser):
         max_length=150,
         unique=True,
     )
-    password = models.CharField(
-        max_length=150,
-        unique=True,
-        verbose_name='Пароль'
-    )
     email = models.EmailField(max_length=254, unique=True)
     first_name = models.CharField(max_length=150, verbose_name='Имя')
     last_name = models.CharField(max_length=150, verbose_name='Фамилия')
     role = models.CharField(max_length=25, choices=USER_ROLE, default=USER)
-
-    REQUIRED_FIELDS = ['username', 'password']
-    USERNAME_FIELD = 'email'
 
     @property
     def is_user(self):

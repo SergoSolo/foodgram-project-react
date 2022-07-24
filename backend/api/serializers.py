@@ -256,21 +256,12 @@ class FollowSerializers(serializers.ModelSerializer):
         ).exists()
 
     def get_recipe(self, instans):
-        # request = self.context.get('request')
-        # recipes_limit = request.GET.get('recipes_limit')
-        # queryset = Recipe.objects.filter(author=instans.following)
-        # if recipes_limit:
-        #     queryset = queryset[:int(recipes_limit)]
-        # serializer = LiteRecipeSerializers(queryset, many=True)
-        # return serializer.data
-        query_params = self.context['request'].query_params
-        recipes_limit = query_params.get('recipes_limit', False)
+        request = self.context.get('request')
+        recipes_limit = request.GET.get('recipes_limit')
+        queryset = Recipe.objects.filter(author=instans.following)
         if recipes_limit:
-            recipes_limit = int(recipes_limit)
-            recipes = Recipe.objects.filter(author=instans)[:recipes_limit]
-        else:
-            recipes = Recipe.objects.filter(author=instans)
-        serializer = LiteRecipeSerializers(recipes, many=True)
+            queryset = queryset[:int(recipes_limit)]
+        serializer = LiteRecipeSerializers(queryset, many=True)
         return serializer.data
 
     def get_recipe_count(self, instans):

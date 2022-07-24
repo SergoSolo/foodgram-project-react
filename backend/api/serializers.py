@@ -226,12 +226,12 @@ class LiteRecipeSerializers(serializers.ModelSerializer):
 
 
 class FollowSerializers(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='following.id')
-    email = serializers.ReadOnlyField(source='following.email')
-    username = serializers.ReadOnlyField(source='following.username')
-    first_name = serializers.ReadOnlyField(source='following.first_name')
-    last_name = serializers.ReadOnlyField(source='following.last_name')
-    is_subscribed = serializers.SerializerMethodField()
+    # id = serializers.ReadOnlyField(source='following.id')
+    # email = serializers.ReadOnlyField(source='following.email')
+    # username = serializers.ReadOnlyField(source='following.username')
+    # first_name = serializers.ReadOnlyField(source='following.first_name')
+    # last_name = serializers.ReadOnlyField(source='following.last_name')
+    # is_subscribed = serializers.SerializerMethodField()
     recipe = serializers.SerializerMethodField()
     recipe_count = serializers.SerializerMethodField()
 
@@ -247,13 +247,13 @@ class FollowSerializers(serializers.ModelSerializer):
             'recipe',
             'recipe_count'
         )
-
-    def get_is_subscribed(self, instans):
-        user = self.context['request'].user
-        return Follow.objects.filter(
-            following=instans.following,
-            user=user
-        ).exists()
+        read_only_fields='__all__',
+    # def get_is_subscribed(self, instans):
+    #     user = self.context['request'].user
+    #     return Follow.objects.filter(
+    #         following=instans.following,
+    #         user=user
+    #     ).exists()
 
     def get_recipe(self, instans):
         request = self.context.get('request')

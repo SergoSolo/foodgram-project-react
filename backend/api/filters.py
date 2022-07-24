@@ -1,9 +1,9 @@
-from django_filters.rest_framework import FilterSet, filters
+from django_filters import rest_framework as filters
 
 from recipes.models import Recipe, Ingredient  # isort:skip
 
 
-class RecipeFilters(FilterSet):
+class RecipeFilters(filters.FilterSet):
     author = filters.AllValuesFilter(method='filter_author')
     tags = filters.AllValuesFilter(
         field_name='tags__slug',
@@ -40,7 +40,7 @@ class RecipeFilters(FilterSet):
         return queryset
 
 
-class IngredientSearchFilter(FilterSet):
+class IngredientSearchFilter(filters.FilterSet):
     name = filters.CharFilter(field_name='name', lookup_expr='icontains')
 
     class Meta:

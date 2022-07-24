@@ -1,7 +1,8 @@
 # from django_filters import AllValuesMultipleFilter
 # from django_filters import rest_framework as filters
 # from django_filters import FilterSet, filters
-from django_filters.rest_framework import filters
+# from django_filters.rest_framework import filters
+import django_filters as filters
 
 from recipes.models import Recipe, Ingredient  # isort:skip
 

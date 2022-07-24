@@ -226,17 +226,17 @@ class LiteRecipeSerializers(serializers.ModelSerializer):
 
 
 class FollowSerializers(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='following.id')
-    email = serializers.ReadOnlyField(source='following.email')
-    username = serializers.ReadOnlyField(source='following.username')
-    first_name = serializers.ReadOnlyField(source='following.first_name')
-    last_name = serializers.ReadOnlyField(source='following.last_name')
+    # id = serializers.ReadOnlyField(source='following.id')
+    # email = serializers.ReadOnlyField(source='following.email')
+    # username = serializers.ReadOnlyField(source='following.username')
+    # first_name = serializers.ReadOnlyField(source='following.first_name')
+    # last_name = serializers.ReadOnlyField(source='following.last_name')
     is_subscribed = serializers.SerializerMethodField()
     recipe = serializers.SerializerMethodField()
     recipe_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = Follow
+        model = User     #Follow
         fields = (
             'email',
             'id',
@@ -265,7 +265,8 @@ class FollowSerializers(serializers.ModelSerializer):
         return serializer.data
 
     def get_recipe_count(self, instans):
-        return Recipe.objects.filter(author=instans.following).count()
+        return instans.recipes.count()
+        #return Recipe.objects.filter(author=instans.following).count()
 
 
 class FollowCreateSerializers(serializers.ModelSerializer):

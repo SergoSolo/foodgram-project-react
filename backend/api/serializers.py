@@ -232,7 +232,7 @@ class FollowSerializers(serializers.ModelSerializer):
     first_name = serializers.ReadOnlyField(source='following.first_name')
     last_name = serializers.ReadOnlyField(source='following.last_name')
     is_subscribed = serializers.SerializerMethodField()
-    recipe = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
     recipe_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -244,7 +244,7 @@ class FollowSerializers(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'is_subscribed',
-            'recipe',
+            'recipes',
             'recipe_count'
         )
 
@@ -255,7 +255,7 @@ class FollowSerializers(serializers.ModelSerializer):
             user=user
         ).exists()
 
-    def get_recipe(self, instans):
+    def get_recipes(self, instans):
         request = self.context.get('request')
         recipes_limit = request.GET.get('recipes_limit')
         queryset = Recipe.objects.filter(author=instans.following)

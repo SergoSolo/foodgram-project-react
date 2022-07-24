@@ -34,7 +34,7 @@ Collect static:
 docker-compose exec backend python manage.py collectstatic --no-input 
 ```
 
-The project is now available at http://84.252.139.107/admin
+The project is now available at http://84.252.139.107/, http://84.252.139.107/admin
 
 Information about API http://84.252.139.107/api/docs/
 

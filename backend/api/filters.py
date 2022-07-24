@@ -1,18 +1,13 @@
-from django.contrib.auth import get_user_model
 from django_filters.rest_framework import FilterSet, filters
 
-from recipes.models import Recipe, Tag, Ingredient  # isort:skip
-
-
-User = get_user_model()
+from recipes.models import Recipe, Ingredient  # isort:skip
 
 
 class RecipeFilters(FilterSet):
-    author = filters.ModelChoiceFilter(queryset=User.objects.all())
-    tags = filters.ModelMultipleChoiceFilter(
+    author = filters.AllValuesFilter(method='filter_author')
+    tags = filters.AllValuesFilter(
         field_name='tags__slug',
-        queryset=Tag.objects.all(),
-        to_field_name='slug',
+        method='filter_tags'
     )
     is_favorited = filters.BooleanFilter(method='filter_is_favorited')
     is_in_shopping_cart = filters.BooleanFilter(
@@ -23,15 +18,26 @@ class RecipeFilters(FilterSet):
         model = Recipe
         fields = ('author', 'tags',)
 
+    def filter_author(self, queryset, name, value):
+        if value:
+            return queryset.filter(author=value)
+        return queryset
+
+    def filter_tags(self, queryset, name, value):
+        if value:
+            return queryset.filter(
+                tags__slug__in=value).distinct()
+        return queryset
+
     def filter_is_favorited(self, queryset, name, value):
         if value:
             return queryset.filter(favorites__user=self.request.user)
-        return Recipe.objects.all()
+        return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         if value:
             return queryset.filter(carts__user=self.request.user)
-        return Recipe.objects.all()
+        return queryset
 
 
 class IngredientSearchFilter(FilterSet):

@@ -247,7 +247,7 @@ class FollowSerializers(serializers.ModelSerializer):
             'recipe',
             'recipe_count'
         )
-        read_only_fields='__all__',
+        read_only_fields = '__all__',
     # def get_is_subscribed(self, instans):
     #     user = self.context['request'].user
     #     return Follow.objects.filter(

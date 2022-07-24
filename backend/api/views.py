@@ -152,19 +152,19 @@ class UserViewSet(UserViewSet):
     pagination_class = PageLimitPagination
     serializer_class = UserSerializers
 
-    # @action(
-    #     detail=False,
-    #     permission_classes=(IsAuthenticated,),
-    # )
-    # def subscriptions(self, request):
-    #     queryset = self.request.user.follower.all()
-    #     page = self.paginate_queryset(queryset)
-    #     serializer = FollowSerializers(
-    #         page,
-    #         many=True,
-    #         context={'request': request}
-    #     )
-    #     return self.get_paginated_response(serializer.data)
+    @action(
+        detail=False,
+        permission_classes=(IsAuthenticated,),
+    )
+    def subscriptions(self, request):
+        queryset = self.request.user.follower.all()
+        page = self.paginate_queryset(queryset)
+        serializer = FollowSerializers(
+            page,
+            many=True,
+            context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
 
     @action(
         detail=True,
@@ -196,11 +196,3 @@ class UserViewSet(UserViewSet):
             {'detail': 'Вы отписались'},
             status=status.HTTP_204_NO_CONTENT
         )
-
-
-class FollowViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FollowSerializers
-    permission_classes = (IsAuthenticated,)
-
-    def get_queryset(self):
-        return Follow.objects.filter(follower=self.request.user)

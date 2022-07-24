@@ -1,13 +1,14 @@
 # from django_filters import AllValuesMultipleFilter
 # from django_filters import rest_framework as filters
 # from django_filters import FilterSet, filters
-# from django_filters.rest_framework import filters
-import django_filters as filters
+from django_filters.rest_framework import FilterSet, filters
+
+# import django_filters as filters
 
 from recipes.models import Recipe, Ingredient  # isort:skip
 
 
-class RecipeFilters(filters.FilterSet):
+class RecipeFilters(FilterSet):
     # author = filters.AllValuesFilter(method='filter_author')
     # tags = filters.AllValuesFilter(
     #     field_name='tags__slug',
@@ -45,7 +46,7 @@ class RecipeFilters(filters.FilterSet):
         return queryset
 
 
-class IngredientSearchFilter(filters.FilterSet):
+class IngredientSearchFilter(FilterSet):
     name = filters.CharFilter(field_name='name', lookup_expr='icontains')
 
     class Meta:
